@@ -1,0 +1,30 @@
+#!/bin/sh
+
+APP_NAME="app-api"
+APP_ROOT="/home/deploy/workspace/app-api"
+
+# Stop the app
+echo "\033[0;32m  Para a excução do serviço :  $APP_NAME"
+pm2 stop "${APP_NAME}"
+
+echo "\033[0;32m Verifique o novo código."
+git --work-tree="$APP_ROOT" --git-dir=/home/deploy/workspace/app-api.git checkout -f
+
+echo "\033[0;32m Instala as dependências"
+cd "$APP_ROOT"
+yarn
+
+echo "\033[0;32m Executa todas as migrações que ainda não foram executadas."
+cd "$APP_ROOT"/src/db
+pwd
+knex migrate:latest
+cd "$APP_ROOT"
+
+echo "\033[0;32m Compila os arquivos."
+yarn build
+
+echo "Reiniciando o aplicativo..."
+pm2 start app.js --name "${APP_NAME}"
+
+echo "\033[0;32m Deploy feito com sucesso!"
+
